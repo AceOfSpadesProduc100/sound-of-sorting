@@ -103,3 +103,49 @@ facilities. If you want to contribute a sorting algorithm, please notify me.
 ## Exits
 
 Written 2013-05-22 by Timo Bingmann
+
+## Requirements (for building)
+- wxWidgets
+- GCC/G++
+- Make
+- SDL2
+- wxGlade (for making changes to the GUI)
+
+
+## Building (Ubuntu Linux)
+- Run `sudo apt-get update`, then `sudo apt-get install build-essential`
+- Run `sudo apt-get install libwxgtk3.0-gtk3-dev`
+- Run `sudo apt-get install libgtk-3-dev`
+- Run `sudo apt-get install libsdl2-dev`
+- Run `cd [wherever it is]`, like `cd ~/sound-of-sorting`
+- Run `vi configure`, then `:set fileformat=unix`, then `:x!`, then `cd acscripts`, then `sudo dos2unix *` again, then  `cd ..`
+- Run `sudo ./configure`
+- Run `make`. If nothing happens, then `make clean` and then either `make` or `make all`
+
+## Building (Windows)
+- Install MSYS2
+- Run `pacman -Syu` for updates
+- Follow https://vcpkg.io/en/docs/users/mingw.html
+- Install wxWidgets: Run `pacman -S mingw-w64-x86_64-wxWidgets`
+- Install SDL2: Run `pacman -S mingw-w64-x86_64-SDL2`
+- Close MSYS2 and open up MinGW64, and run `cd /c/sound-of-sorting` or wherever this program is
+- Run `./configure --target=mingw32`, then run `make`
+
+## Visual Studio Code
+- Install vcpkg
+- Install wxWidgets and SDL2 via vcpkg
+- Follow https://vcpkg.io/en/docs/users/mingw.html if building for Windows
+
+## Building (CMake) (NOT WORKING)
+- Install CMake
+- If on Windows, follow `Building (Windows)` except for the last two steps
+- Follow https://code.visualstudio.com/docs/cpp/cmake-linux
+- Or, run the CMake GUI and follow these screenshots:
+![Cmake1](./cmake1.png)
+![Cmake2](./cmake2.png)
+![Cmake3](./cmake3.png)
+- Then, go to MinGW shell, and go to `sound-of-sorting\build`, and then run `mingw32-make`
+
+## wxGlade (GUI designer)
+- Run `pip install pywin32` if on Windows
+- Install wxPython (it's best to do it on Linux, specifically Ubuntu on WSL2 if you're on Windows) https://wiki.wxpython.org/How%20to%20install%20wxPython

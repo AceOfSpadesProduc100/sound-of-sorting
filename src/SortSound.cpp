@@ -33,6 +33,11 @@
 #include "WSortView.h"
 #include <SDL.h>
 #include <limits>
+#include "WMain.h"
+#if GLOBALS_H_
+#include "Globals.h"
+int sound;
+#endif
 
 // *** All time counters in the sound system are in sample units.
 
@@ -52,19 +57,19 @@ class Oscillator
 {
 protected:
     /// frequency of generated wave
-    double              m_freq;
+    double m_freq;
 
     /// start and end of wave in sample time
-    size_t              m_tstart, m_tend;
+    size_t m_tstart, m_tend;
 
     /// duration of oscillation note
-    size_t              m_duration;
+    size_t m_duration;
 
 public:
     /// construct new oscillator
     Oscillator(double freq, size_t tstart, size_t duration = 44100 / 8)
         : m_freq(freq), m_tstart(tstart),
-          m_tend( m_tstart + duration ),
+          m_tend(m_tstart + duration),
           m_duration(duration)
     {
     }
@@ -74,13 +79,13 @@ public:
     /// simple sine wave
     static double wave_sin(double x)
     {
-        return sin(x * 2*M_PI);
+        return sin(x * 2 * M_PI);
     }
 
     /// sin^3 wave
     static double wave_sin3(double x)
     {
-        double s = sin(x * 2*M_PI);
+        double s = sin(x * 2 * M_PI);
         return s * s * s;
     }
 
@@ -89,16 +94,29 @@ public:
     {
         x = fmod(x, 1.0);
 
-        if (x <= 0.25) return 4.0 * x;
-        if (x <= 0.75) return 2.0 - 4.0 * x;
+        if (x <= 0.25)
+            return 4.0 * x;
+        if (x <= 0.75)
+            return 2.0 - 4.0 * x;
         return 4.0 * x - 4.0;
     }
 
     /// picking a waveform
     static double wave(double x)
     {
-        //return wave_sin(x);
-        //return wave_sin3(x);
+// return wave_sin(x);
+// return wave_sin3(x);
+#if GLOBALS_H_
+        switch (sound)
+        {
+        case 0:
+            return wave_triangle(x);
+        case 1:
+            return wave_sin3(x);
+        case 2:
+            return wave_sin(x);
+        }
+#endif
         return wave_triangle(x);
     }
 
@@ -108,12 +126,13 @@ public:
     double envelope(size_t i) const
     {
         double x = (double)i / m_duration;
-        if (x > 1.0) x = 1.0;
+        if (x > 1.0)
+            x = 1.0;
 
         // simple envelope functions:
 
-        //return 1.0 - x;
-        //return cos(M_PI_2 * x);
+        // return 1.0 - x;
+        // return cos(M_PI_2 * x);
 
         // *** ADSR envelope
 
@@ -137,12 +156,14 @@ public:
     // *** Generate Wave and Mix
 
     /// mix in the output of this oscillator on the wave output
-    void mix(double* data, int size, size_t p) const
+    void mix(double *data, int size, size_t p) const
     {
         for (int i = 0; i < size; ++i)
         {
-            if (p+i < m_tstart) continue;
-            if (p+i >= m_tend) break;
+            if (p + i < m_tstart)
+                continue;
+            if (p + i >= m_tend)
+                break;
 
             size_t trel = (p + i - m_tstart);
 
@@ -152,7 +173,9 @@ public:
 
     /// return start time
     size_t tstart() const
-    { return m_tstart; }
+    {
+        return m_tstart;
+    }
 
     /// true if the oscillator is silent at time p
     bool is_done(size_t p) const
@@ -180,7 +203,8 @@ static void add_oscillator(double freq, size_t p, size_t pstart, size_t duration
             return;
         }
 
-        if (s_osclist[i].tstart() < toldest) {
+        if (s_osclist[i].tstart() < toldest)
+        {
             oldest = i;
             toldest = s_osclist[i].tstart();
         }
@@ -189,7 +213,7 @@ static void add_oscillator(double freq, size_t p, size_t pstart, size_t duration
     if (s_osclist.size() < s_max_oscillators)
     {
         // add new one
-        s_osclist.push_back( Oscillator(freq, pstart, duration) );
+        s_osclist.push_back(Oscillator(freq, pstart, duration));
     }
     else
     {
@@ -207,7 +231,8 @@ static wxMutex s_mutex_access_list;
 /// "public" function to add a new array access
 void SoundAccess(size_t i)
 {
-    if (!g_sound_on) return;
+    if (!g_sound_on)
+        return;
 
     wxMutexLocker lock(s_mutex_access_list);
     ASSERT(lock.IsOk());
@@ -218,7 +243,7 @@ void SoundAccess(size_t i)
 /// function mapping array index (normalized to [0,1]) to frequency
 static double arrayindex_to_frequency(double aindex)
 {
-    return 120 + 1200 * (aindex*aindex);
+    return 120 + 1200 * (aindex * aindex);
 }
 
 /// reset internal sound data (called from main thread)
@@ -232,22 +257,23 @@ void SoundReset()
 }
 
 /// sound generator callback run by SDL
-void SoundCallback(void* udata, Uint8 *stream, int len)
+void SoundCallback(void *udata, Uint8 *stream, int len)
 {
-    if (!g_sound_on) {
+    if (!g_sound_on)
+    {
         memset(stream, 0, len);
         return;
     }
 
     // current sample time (32-bit size_t wraps after 27 hours, 64-bit size_t
     // wraps after 13 million years).
-    size_t& p = s_pos;
+    size_t &p = s_pos;
 
     // reference to sortview
-    WSortView& sv = *reinterpret_cast<WSortView*>(udata);
+    WSortView &sv = *reinterpret_cast<WSortView *>(udata);
 
     // we use 16-bit mono output at 44.1 kHz
-    int16_t* data = (int16_t*)stream;
+    int16_t *data = (int16_t *)stream;
     size_t size = len / sizeof(int16_t);
 
     // fetch new access list and create oscillators
@@ -263,8 +289,8 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
             double relindex = s_access_list[i] / (double)sv.m_array.array_max();
             double freq = arrayindex_to_frequency(relindex);
 
-            add_oscillator( freq, p, p + i * pscale,
-                            g_delay / 1000.0 * g_sound_sustain * s_samplerate );
+            add_oscillator(freq, p, p + i * pscale,
+                           g_delay / 1000.0 * g_sound_sustain * s_samplerate);
         }
 
         s_access_list.clear();
@@ -298,10 +324,12 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
 
         static double oldvol = 1.0;
 
-        if (vol > oldvol) {
+        if (vol > oldvol)
+        {
             // immediately ramp down volume
         }
-        else {
+        else
+        {
             // but slowly ramp up volume
             vol = 0.9 * oldvol;
         }
@@ -312,12 +340,14 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
         {
             int32_t v = 24000.0 * wave[i] / (oldvol + (vol - oldvol) * (i / (double)size));
 
-            if (v > 32200) {
-                //std::cout << "clip " << p << "\n";
+            if (v > 32200)
+            {
+                // std::cout << "clip " << p << "\n";
                 v = 32200;
             }
-            if (v < -32200) {
-                //std::cout << "clip " << p << "\n";
+            if (v < -32200)
+            {
+                // std::cout << "clip " << p << "\n";
                 v = -32200;
             }
 

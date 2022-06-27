@@ -23,23 +23,27 @@
 #include "WMain.h"
 #include "SortAlgo.h"
 #include <SDL.h>
+#if GLOBALS_H_
+#include "Globals.h"
+int sound;
+#endif
 
 #include "wxg/WAbout_wxg.h"
 
-WMain::WMain(wxWindow* parent)
+WMain::WMain(wxWindow *parent)
     : WMain_wxg(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE)
 {
     m_thread = NULL;
-    g_sound_on = false;
+    g_sound_on = true;
 
     recordButton->Hide();
     panelQuickSortPivot->Hide();
     infoTextctrl->Hide();
 
     // program icon
-    {    
-        #include "sos.xpm"
-	SetIcon( wxIcon(sos) );
+    {
+#include "sos.xpm"
+        SetIcon(wxIcon(sos));
     }
 
     // program version
@@ -49,7 +53,7 @@ WMain::WMain(wxWindow* parent)
     splitter_0->SetSashPosition(GetSize().x - 280);
 
     // insert list of algorithms into wxListBox
-    for (const AlgoEntry* ae = g_algolist; ae != g_algolist_end; ++ae)
+    for (const AlgoEntry *ae = g_algolist; ae != g_algolist_end; ++ae)
         algoList->Append(ae->name);
 
     algoList->SetSelection(0);
@@ -59,13 +63,17 @@ WMain::WMain(wxWindow* parent)
     sortview->m_array.FillInputlist(inputList);
     inputTypeChoice->Append(inputList);
 
+    wxArrayString sounds;
+    sortview->m_array.FillSoundList(sounds);
+    inputSound->Append(sounds);
+    inputSound->SetSelection(0);
     sortview->m_array.FillData(0, 100);
     inputTypeChoice->SetSelection(0);
     arraySizeSlider->SetValue(100);
     SetArraySize(100);
 
     // insert quicksort pivot rules into wxChoice
-    pivotRuleChoice->Append( QuickSortPivotText() );
+    pivotRuleChoice->Append(QuickSortPivotText());
     pivotRuleChoice->SetSelection(0);
 
     // set default speed
@@ -73,8 +81,8 @@ WMain::WMain(wxWindow* parent)
     SetDelay(1000);
 
     // set default sound sustain
-    soundSustainSlider->SetValue(700);
-    SetSoundSustain(700);
+    soundSustainSlider->SetValue(100);
+    SetSoundSustain(100);
 
     // create audio output
     SDL_AudioSpec sdlaudiospec;
@@ -82,13 +90,14 @@ WMain::WMain(wxWindow* parent)
     // Set the audio format
     sdlaudiospec.freq = 44100;
     sdlaudiospec.format = AUDIO_S16SYS;
-    sdlaudiospec.channels = 1;    	/* 1 = mono, 2 = stereo */
-    sdlaudiospec.samples = 4096;  	/* Good low-latency value for callback */
+    sdlaudiospec.channels = 1;   /* 1 = mono, 2 = stereo */
+    sdlaudiospec.samples = 4096; /* Good low-latency value for callback */
     sdlaudiospec.callback = SoundCallback;
     sdlaudiospec.userdata = sortview;
 
     // Open the audio device, forcing the desired format
-    if ( SDL_OpenAudio(&sdlaudiospec, NULL) < 0 ) {
+    if (SDL_OpenAudio(&sdlaudiospec, NULL) < 0)
+    {
         wxLogError(_("Couldn't open audio: ") + wxString(SDL_GetError(), wxConvISO8859_1));
         soundButton->Disable();
     }
@@ -110,22 +119,24 @@ WMain::~WMain()
 
 BEGIN_EVENT_TABLE(WMain, WMain_wxg)
 
-    EVT_TOGGLEBUTTON(ID_RUN_BUTTON, WMain::OnRunButton)
-    EVT_BUTTON(ID_RESET_BUTTON, WMain::OnResetButton)
-    EVT_BUTTON(ID_STEP_BUTTON, WMain::OnStepButton)
-    EVT_TOGGLEBUTTON(ID_SOUND_BUTTON, WMain::OnSoundButton)
-    EVT_BUTTON(ID_RANDOM_BUTTON, WMain::OnRandomButton)
-    EVT_BUTTON(wxID_ABOUT, WMain::OnAboutButton)
+EVT_TOGGLEBUTTON(ID_RUN_BUTTON, WMain::OnRunButton)
+EVT_BUTTON(ID_RESET_BUTTON, WMain::OnResetButton)
+EVT_BUTTON(ID_STEP_BUTTON, WMain::OnStepButton)
+EVT_TOGGLEBUTTON(ID_SOUND_BUTTON, WMain::OnSoundButton)
+EVT_BUTTON(ID_RANDOM_BUTTON, WMain::OnRandomButton)
+EVT_BUTTON(wxID_ABOUT, WMain::OnAboutButton)
 
-    EVT_COMMAND_SCROLL(ID_SPEED_SLIDER, WMain::OnSpeedSliderChange)
-    EVT_COMMAND_SCROLL(ID_SOUND_SUSTAIN_SLIDER, WMain::OnSoundSustainSliderChange)
-    EVT_COMMAND_SCROLL(ID_ARRAY_SIZE_SLIDER, WMain::OnArraySizeSliderChange)
-    EVT_LISTBOX(ID_ALGO_LIST, WMain::OnAlgoList)
-    EVT_LISTBOX_DCLICK(ID_ALGO_LIST, WMain::OnAlgoListDClick)
+EVT_CHOICE(ID_SOUND_CHOICE, WMain::OnInputSound)
 
-    EVT_COMMAND(ID_RUN_FINISHED, wxEVT_COMMAND_BUTTON_CLICKED, WMain::OnRunFinished)
+EVT_COMMAND_SCROLL(ID_SPEED_SLIDER, WMain::OnSpeedSliderChange)
+EVT_COMMAND_SCROLL(ID_SOUND_SUSTAIN_SLIDER, WMain::OnSoundSustainSliderChange)
+EVT_COMMAND_SCROLL(ID_ARRAY_SIZE_SLIDER, WMain::OnArraySizeSliderChange)
+EVT_LISTBOX(ID_ALGO_LIST, WMain::OnAlgoList)
+EVT_LISTBOX_DCLICK(ID_ALGO_LIST, WMain::OnAlgoListDClick)
 
-    EVT_COMMAND(ID_INVERSION_LABEL, wxEVT_COMMAND_BUTTON_CLICKED, WMain::OnInversionLabelClick)
+EVT_COMMAND(ID_RUN_FINISHED, wxEVT_COMMAND_BUTTON_CLICKED, WMain::OnRunFinished)
+
+EVT_COMMAND(ID_INVERSION_LABEL, wxEVT_COMMAND_BUTTON_CLICKED, WMain::OnInversionLabelClick)
 
 END_EVENT_TABLE();
 
@@ -142,7 +153,7 @@ bool WMain::RunAlgorithm()
     else
     {
         if (sortview->m_array.IsSorted())
-            sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+            sortview->m_array.FillData(inputTypeChoice->GetSelection(), m_array_size);
 
         sortview->SetStepwise(false);
 
@@ -164,10 +175,12 @@ bool WMain::RunAlgorithm()
 
 void WMain::AbortAlgorithm()
 {
-    if (!m_thread) return;
+    if (!m_thread)
+        return;
 
     m_thread_terminate = true;
-    if (m_thread->IsPaused()) m_thread->Resume();
+    if (m_thread->IsPaused())
+        m_thread->Resume();
     sortview->SetStepwise(false);
 
     m_thread->Wait();
@@ -199,7 +212,8 @@ void WMain::OnRunButton(wxCommandEvent &event)
         {
             g_algo_running = true;
             sortview->SetStepwise(false);
-            if (m_thread->IsPaused()) m_thread->Resume();
+            if (m_thread->IsPaused())
+                m_thread->Resume();
         }
     }
     else
@@ -212,7 +226,7 @@ void WMain::OnRunButton(wxCommandEvent &event)
     }
 }
 
-void WMain::OnRunFinished(wxCommandEvent&)
+void WMain::OnRunFinished(wxCommandEvent &)
 {
     // join finished thread
     if (m_thread)
@@ -227,28 +241,30 @@ void WMain::OnRunFinished(wxCommandEvent&)
     runButton->SetValue(false);
 }
 
-void WMain::OnResetButton(wxCommandEvent&)
+void WMain::OnResetButton(wxCommandEvent &)
 {
     // terminate running algorithm.
     AbortAlgorithm();
 
     runButton->SetValue(false);
 
-    sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+    sortview->m_array.FillData(inputTypeChoice->GetSelection(), m_array_size);
 }
 
-void WMain::OnStepButton(wxCommandEvent&)
+void WMain::OnStepButton(wxCommandEvent &)
 {
     // lock thread to one step
     if (!m_thread)
     {
-        if (!RunAlgorithm()) return;
+        if (!RunAlgorithm())
+            return;
         sortview->SetStepwise(true);
     }
     else
     {
-        if (m_thread->IsPaused()) m_thread->Resume();
-        sortview->SetStepwise(true);    // in case not already set
+        if (m_thread->IsPaused())
+            m_thread->Resume();
+        sortview->SetStepwise(true); // in case not already set
         runButton->SetValue(false);
         g_algo_running = true;
     }
@@ -257,7 +273,7 @@ void WMain::OnStepButton(wxCommandEvent&)
     sortview->DoStepwise();
 }
 
-void WMain::OnSoundButton(wxCommandEvent&)
+void WMain::OnSoundButton(wxCommandEvent &)
 {
     if (soundButton->GetValue())
     {
@@ -272,12 +288,29 @@ void WMain::OnSoundButton(wxCommandEvent&)
     }
 }
 
-void WMain::OnRandomButton(wxCommandEvent&)
+void WMain::OnInputSound(wxCommandEvent &)
+{
+#if GLOBALS_H_
+    switch (inputSound->GetSelection())
+    {
+    case 0:
+        sound = 0;
+        break;
+    case 1:
+        sound = 1;
+        break;
+    case 2:
+        sound = 2;
+    }
+#endif
+}
+
+void WMain::OnRandomButton(wxCommandEvent &)
 {
     AbortAlgorithm();
 
-    algoList->SetSelection( rand() % algoList->GetCount() );
-    sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+    algoList->SetSelection(rand() % algoList->GetCount());
+    sortview->m_array.FillData(inputTypeChoice->GetSelection(), m_array_size);
 
     RunAlgorithm();
 
@@ -287,7 +320,7 @@ void WMain::OnRandomButton(wxCommandEvent&)
 class WAbout : public WAbout_wxg
 {
 public:
-    WAbout(wxWindow* parent)
+    WAbout(wxWindow *parent)
         : WAbout_wxg(parent, wxID_ANY, wxEmptyString)
     {
         labelTitle->SetLabel(_("The Sound of Sorting " PACKAGE_VERSION));
@@ -299,7 +332,7 @@ public:
     }
 };
 
-void WMain::OnAboutButton(wxCommandEvent&)
+void WMain::OnAboutButton(wxCommandEvent &)
 {
     WAbout dlg(this);
     dlg.ShowModal();
@@ -322,7 +355,8 @@ void WMain::SetDelay(size_t pos)
     // other systems probably have sucking real-time performance anyway
     g_delay = pow(base, pos / 2000.0 * log(2 * 1000.0) / log(base));
 #endif
-    if (pos == 0) g_delay = 0;
+    if (pos == 0)
+        g_delay = 0;
 
     if (g_delay > 10)
         labelDelayValue->SetLabel(wxString::Format(_("%.0f ms"), g_delay));
@@ -362,8 +396,8 @@ void WMain::OnArraySizeSliderChange(wxScrollEvent &event)
 void WMain::SetArraySize(size_t pos)
 {
     // scale slider with this base to 2048
-    //const double base = 2;
-    //m_array_size = pow(base, pos / 10000.0 * log(2048) / log(base));
+    // const double base = 2;
+    // m_array_size = pow(base, pos / 10000.0 * log(2048) / log(base));
     m_array_size = pos;
 
     labelArraySizeValue->SetLabel(wxString::Format(_("%4lu"), (long unsigned)m_array_size));
@@ -371,7 +405,7 @@ void WMain::SetArraySize(size_t pos)
     labelArraySizeValue->GetContainingSizer()->Layout();
 }
 
-void WMain::OnAlgoList(wxCommandEvent&)
+void WMain::OnAlgoList(wxCommandEvent &)
 {
     int sel = algoList->GetSelection();
     wxString text;
@@ -395,14 +429,14 @@ void WMain::OnAlgoList(wxCommandEvent&)
     }
 }
 
-void WMain::OnAlgoListDClick(wxCommandEvent&)
+void WMain::OnAlgoListDClick(wxCommandEvent &)
 {
     // terminate running algorithm.
     if (m_thread)
     {
         AbortAlgorithm();
 
-        sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+        sortview->m_array.FillData(inputTypeChoice->GetSelection(), m_array_size);
     }
 
     // start new one
@@ -411,7 +445,7 @@ void WMain::OnAlgoListDClick(wxCommandEvent&)
 
 // ----------------------------------------------------------------------------
 
-WMain::RefreshTimer::RefreshTimer(WMain* wmain)
+WMain::RefreshTimer::RefreshTimer(WMain *wmain)
     : wm(*wmain)
 {
 }
@@ -443,7 +477,6 @@ void WMain::RefreshTimer::Notify()
 class MyApp : public wxApp
 {
 public:
-
     virtual bool OnInit()
     {
         if (SDL_Init(SDL_INIT_AUDIO) < 0)
@@ -455,7 +488,7 @@ public:
 
         srand((int)wxGetLocalTime());
 
-        WMain* wmain = new WMain(NULL);
+        WMain *wmain = new WMain(NULL);
         SetTopWindow(wmain);
         wmain->Show();
 

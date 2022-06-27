@@ -34,8 +34,8 @@ class SortTestApp : public wxAppConsole
 public:
     virtual bool OnInit();
     virtual int OnRun();
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
+    virtual void OnInitCmdLine(wxCmdLineParser &parser);
+    virtual bool OnCmdLineParsed(wxCmdLineParser &parser);
 
 private:
     wxString m_filter;
@@ -55,14 +55,13 @@ static size_t testsize[] = {
     10, 11, 12, 13, 14, 15, 16, 32,
     100, 101, 102, 103, 200,
     1024, 1337, 2048,
-    0
-};
+    0};
 
 struct SortedCheck
 {
     std::vector<ArrayItem> m_sorted;
 
-    SortedCheck(const SortArray& sa)
+    SortedCheck(const SortArray &sa)
         : m_sorted(sa.size())
     {
         for (size_t i = 0; i < sa.size(); ++i)
@@ -71,10 +70,12 @@ struct SortedCheck
         std::sort(m_sorted.begin(), m_sorted.end());
     }
 
-    bool check(const SortArray& sa)
+    bool check(const SortArray &sa)
     {
-        if (sa.size() != m_sorted.size()) return false;
-        for (size_t i = 0; i < sa.size(); ++i) {
+        if (sa.size() != m_sorted.size())
+            return false;
+        for (size_t i = 0; i < sa.size(); ++i)
+        {
             if (m_sorted[i] != sa.direct(i))
                 return false;
         }
@@ -89,11 +90,14 @@ int SortTestApp::OnRun()
     bool all_good = true;
 
     wxArrayString inputlist;
+    wxArrayString sounds;
+
     SortArray::FillInputlist(inputlist);
+    SortArray::FillSoundList(sounds);
 
     for (size_t algoi = 0; algoi < g_algolist_size; ++algoi)
     {
-        const AlgoEntry& ae = g_algolist[algoi];
+        const AlgoEntry &ae = g_algolist[algoi];
 
         if (!m_filter.IsEmpty() && !ae.name.Contains(m_filter))
             continue;
@@ -105,7 +109,8 @@ int SortTestApp::OnRun()
         {
             size_t n = testsize[sizei];
 
-            if (n > ae.max_testsize) break;
+            if (n > ae.max_testsize)
+                break;
 
             for (size_t inputi = 0; inputi < inputlist.size(); ++inputi)
             {
@@ -122,11 +127,13 @@ int SortTestApp::OnRun()
                 ae.func(array);
                 long millitime = sw.Time();
 
-                if (!array.CheckSorted()) {
+                if (!array.CheckSorted())
+                {
                     wxPrintf(_T("FAILED(%s) "), inputlist[inputi].c_str());
                     all_good = false;
                 }
-                else if (!sortcheck.check(array)) {
+                else if (!sortcheck.check(array))
+                {
                     wxPrintf(_T("FAILED(%s) "), inputlist[inputi].c_str());
                     all_good = false;
                 }
@@ -143,41 +150,41 @@ int SortTestApp::OnRun()
 }
 
 static const wxCmdLineEntryDesc g_cmdLineDesc[] =
-{
-#if wxCHECK_VERSION(2,9,0)
-    { wxCMD_LINE_SWITCH, "h", "help",
-      "displays help on the command line parameters",
-      wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    {
+#if wxCHECK_VERSION(2, 9, 0)
+        {wxCMD_LINE_SWITCH, "h", "help",
+         "displays help on the command line parameters",
+         wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP},
 
-    { wxCMD_LINE_PARAM, NULL, NULL,
-      "filter",
-      wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+        {wxCMD_LINE_PARAM, NULL, NULL,
+         "filter",
+         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
 
-    { wxCMD_LINE_NONE, NULL, NULL,
-      NULL,
-      wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL }
+        {wxCMD_LINE_NONE, NULL, NULL,
+         NULL,
+         wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL}
 #else
-    { wxCMD_LINE_SWITCH, _T("h"), _T("help"),
-      _T("displays help on the command line parameters"),
-      wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+        {wxCMD_LINE_SWITCH, _T("h"), _T("help"),
+         _T("displays help on the command line parameters"),
+         wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP},
 
-    { wxCMD_LINE_PARAM, wxEmptyString, wxEmptyString,
-      _T("filter"),
-      wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+        {wxCMD_LINE_PARAM, wxEmptyString, wxEmptyString,
+         _T("filter"),
+         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
 
-    { wxCMD_LINE_NONE, wxEmptyString, wxEmptyString,
-      wxEmptyString,
-      wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL }
+        {wxCMD_LINE_NONE, wxEmptyString, wxEmptyString,
+         wxEmptyString,
+         wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL}
 #endif
 };
 
-void SortTestApp::OnInitCmdLine(wxCmdLineParser& parser)
+void SortTestApp::OnInitCmdLine(wxCmdLineParser &parser)
 {
     parser.SetDesc(g_cmdLineDesc);
     parser.SetSwitchChars(_T("-"));
 }
 
-bool SortTestApp::OnCmdLineParsed(wxCmdLineParser& parser)
+bool SortTestApp::OnCmdLineParsed(wxCmdLineParser &parser)
 {
     // to get the unnamed parameters
     for (size_t i = 0; i < parser.GetParamCount(); i++)

@@ -17,9 +17,8 @@
 #include "wx/intl.h"
 
 #ifndef APP_CATALOG
-#define APP_CATALOG "app"  // replace with the appropriate catalog name
+#define APP_CATALOG "app" // replace with the appropriate catalog name
 #endif
-
 
 // begin wxGlade: ::dependencies
 #include <wx/splitter.h>
@@ -31,11 +30,12 @@
 #include "../wxClickText.h"
 // end wxGlade
 
-
-class WMain_wxg: public wxFrame {
+class WMain_wxg : public wxFrame
+{
 public:
     // begin wxGlade: WMain_wxg::ids
-    enum {
+    enum
+    {
         ID_RUN_BUTTON = wxID_HIGHEST + 1000,
         ID_RESET_BUTTON = wxID_HIGHEST + 1001,
         ID_STEP_BUTTON = wxID_HIGHEST + 1002,
@@ -46,11 +46,12 @@ public:
         ID_SOUND_SUSTAIN_SLIDER = wxID_HIGHEST + 1007,
         ID_INVERSION_LABEL = wxID_HIGHEST + 1008,
         ID_ARRAY_SIZE_SLIDER = wxID_HIGHEST + 1009,
-        ID_ALGO_LIST = wxID_HIGHEST + 1010
+        ID_ALGO_LIST = wxID_HIGHEST + 1010,
+        ID_SOUND_CHOICE = wxID_HIGHEST + 1011
     };
     // end wxGlade
 
-    WMain_wxg(wxWindow* parent, int id, const wxString& title, const wxPoint& pos=wxDefaultPosition, const wxSize& size=wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE);
+    WMain_wxg(wxWindow *parent, int id, const wxString &title, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE);
 
 private:
     // begin wxGlade: WMain_wxg::methods
@@ -60,37 +61,37 @@ private:
 
 protected:
     // begin wxGlade: WMain_wxg::attributes
-    wxStaticBox* sizerInputAlgorithm_staticbox;
-    wxStaticBox* sizer_3_staticbox;
-    WSortView* sortview;
-    wxPanel* splitter_0_pane_1;
-    wxToggleButton* runButton;
-    wxButton* resetButton;
-    wxButton* stepButton;
-    wxToggleButton* soundButton;
-    wxButton* aboutButton;
-    wxButton* randomButton;
-    wxToggleButton* recordButton;
-    wxSlider* speedSlider;
-    wxStaticText* labelDelayValue;
-    wxSlider* soundSustainSlider;
-    wxStaticText* labelSoundSustainValue;
-    wxClickText* labelComparisonsValue;
-    wxClickText* labelAccessCount;
-    wxClickText* labelInversionCount;
-    wxClickText* labelRunsCount;
-    wxChoice* inputTypeChoice;
-    wxSlider* arraySizeSlider;
-    wxStaticText* labelArraySizeValue;
-    wxListBox* algoList;
-    wxStaticText* pivotRuleLabel;
-    wxChoice* pivotRuleChoice;
-    wxPanel* panelQuickSortPivot;
-    wxTextCtrl* infoTextctrl;
-    wxPanel* splitter_0_pane_2;
-    wxSplitterWindow* splitter_0;
+    wxStaticBox *sizerInputAlgorithm_staticbox;
+    wxStaticBox *sizer_3_staticbox;
+    WSortView *sortview;
+    wxPanel *splitter_0_pane_1;
+    wxToggleButton *runButton;
+    wxButton *resetButton;
+    wxButton *stepButton;
+    wxToggleButton *soundButton;
+    wxButton *aboutButton;
+    wxButton *randomButton;
+    wxToggleButton *recordButton;
+    wxSlider *speedSlider;
+    wxStaticText *labelDelayValue;
+    wxSlider *soundSustainSlider;
+    wxStaticText *labelSoundSustainValue;
+    wxClickText *labelComparisonsValue;
+    wxClickText *labelAccessCount;
+    wxClickText *labelInversionCount;
+    wxClickText *labelRunsCount;
+    wxChoice *inputTypeChoice;
+    wxChoice *inputSound;
+    wxSlider *arraySizeSlider;
+    wxStaticText *labelArraySizeValue;
+    wxListBox *algoList;
+    wxStaticText *pivotRuleLabel;
+    wxChoice *pivotRuleChoice;
+    wxPanel *panelQuickSortPivot;
+    wxTextCtrl *infoTextctrl;
+    wxPanel *splitter_0_pane_2;
+    wxSplitterWindow *splitter_0;
     // end wxGlade
 }; // wxGlade: end class
-
 
 #endif // WMAIN_WXG_H
